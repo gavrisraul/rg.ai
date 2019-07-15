@@ -133,14 +133,6 @@ putgitrepo() { # Downlods a gitrepo $1 and places the files in $2 only overwriti
 	sudo -u "$name" cp -rfT "$dir/gitrepo" "$2"
 }
 
-serviceinit() {
-	for service in "$@"; do
-	dialog --infobox "Enabling \"$service\"..." 4 40
-	systemctl enable "$service"
-	systemctl start "$service"
-	done ;
-}
-
 systembeepoff() {
 	dialog --infobox "Getting rid of that retarded error beep sound..." 10 50
 	rmmod pcspkr
@@ -220,9 +212,6 @@ curl "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim" > "/h
 dialog --infobox "Installing (neo)vim plugins..." 4 50
 (sleep 30 && killall nvim) &
 sudo -u "$name" nvim -E -c "PlugUpdate|visual|q|q" >/dev/null 2>&1
-
-# Enable services here.
-serviceinit NetworkManager.service cronie
 
 # Most important command! Get rid of the beep!
 systembeepoff
