@@ -25,13 +25,7 @@ pacman --noconfirm --needed -S networkmanager
 pacman --noconfirm --needed -S network-manager-applet
 pacman --noconfirm --needed -S gnome-keyring
 
-
 systemctl enable NetworkManager.service
-
-systemctl disable dhcpcd.service
-systemctl disable dhcpcd@.service
-systemctl stop dhcpcd.service
-systemctl stop dhcpcd@.service
 
 systemctl enable wpa_supplicant.service
 
@@ -42,6 +36,11 @@ ip link set down enp4s0f1
 ip link set down wlp3s0
 
 systemctl start wpa_supplicant.service
+
+systemctl disable dhcpcd.service
+systemctl disable dhcpcd@.service
+systemctl stop dhcpcd.service
+systemctl stop dhcpcd@.service
 
 systemctl start NetworkManager.service
 
