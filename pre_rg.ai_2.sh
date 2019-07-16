@@ -19,8 +19,30 @@ echo "127.0.1.1       rg.localdomain  rg" >> /etc/hosts
 
 pacman -S --noconfirm --needed dialog sudo zsh os-prober
 
+pacman --noconfirm --needed -S wpa_supplicant
+pacman --noconfirm --needed -S wireless_tools
 pacman --noconfirm --needed -S networkmanager
+pacman --noconfirm --needed -S network-manager-applet
+pacman --noconfirm --needed -S gnome-keyring
+
+
 systemctl enable NetworkManager.service
+
+systemctl disable dhcpcd.service
+systemctl disable dhcpcd@.service
+systemctl stop dhcpcd.service
+systemctl stop dhcpcd@.service
+
+systemctl enable wpa_supplicant.service
+
+# gpasswd -a rg network
+
+ip link set down lo
+ip link set down enp4s0f1
+ip link set down wlp3s0
+
+systemctl start wpa_supplicant.service
+
 systemctl start NetworkManager.service
 
 dialog --no-cancel --inputbox "Enter password for root." 10 65 2>rootpasswd
