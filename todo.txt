@@ -1,0 +1,5 @@
+sudo pip3 install neovim
+sudo pip3 install pynvim --upgrade
+sudo pip3 install virtualenvwrapper
+sudo pip3 install ipython
+sudo npm install -g quote-cli
