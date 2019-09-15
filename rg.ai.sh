@@ -116,10 +116,10 @@ installationloop() {
 		n=$((n+1))
 		echo "$comment" | grep "^\".*\"$" >/dev/null 2>&1 && comment="$(echo "$comment" | sed "s/\(^\"\|\"$\)//g")"
 		case "$tag" in
-			"") maininstall "$program" "$comment" ;;
-			"A") aurinstall "$program" "$comment" ;;
-			"G") gitmakeinstall "$program" "$comment" ;;
-			"P") pipinstall "$program" "$comment" ;;
+			"pacman") maininstall "$program" "$comment" ;;
+			"aur") aurinstall "$program" "$comment" ;;
+			"git") gitmakeinstall "$program" "$comment" ;;
+			"pip") pipinstall "$program" "$comment" ;;
 		esac
 	done < /tmp/progs.csv ;
 }
