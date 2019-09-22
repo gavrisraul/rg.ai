@@ -21,11 +21,10 @@ pacman -S --noconfirm --needed dialog sudo zsh os-prober
 
 pacman -S --noconfirm --needed ifplugd wpa_supplicant
 
-#pacman --noconfirm --needed -S wpa_supplicant
-#pacman --noconfirm --needed -S wireless_tools
+pacman --noconfirm --needed -S wireless_tools
 #pacman --noconfirm --needed -S networkmanager
 #pacman --noconfirm --needed -S network-manager-applet
-#pacman --noconfirm --needed -S gnome-keyring
+pacman --noconfirm --needed -S gnome-keyring
 
 #systemctl enable NetworkManager.service
 
@@ -61,7 +60,7 @@ chsh -s /usr/bin/zsh
 pacman -Sy --noconfirm
 pacman -Su --noconfirm
 
-dialog --title "Install rg.ai" --yesno "Would you like to go on and install rg.ai?"  5 50 && bash rg.ai.sh
+dialog --title "Install rg.ai" --yesno "Would you like to go on and install rg.ai?"  5 50 && bash rg.ai.py
 
 dialog --defaultno --title "Finally, here\! All installed\!" --yesno "Reboot computer?"  5 30 && reboot
 clear

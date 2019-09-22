@@ -28,7 +28,8 @@ def welcome_message():
 
 def get_user_and_password():
     global user
-    user = d.inputbox('Username:', height=10, width=60)[1]
+    if not user:
+        user = d.inputbox('Username:', height=10, width=60)[1]
     if not subprocess.call(f'id -u {user}'):
         yesno = d.yesno(
             f'''The user {user} already exists. This will overwrite \
@@ -269,6 +270,7 @@ system_beep_off()
 d.infobox('Installing powerline fonts...', height=10, width=35)
 subprocess.call(
     f'''sudo chown -R {user} /home/{user}/.npm; \
+    cd /tmp; \
     git clone https://github.com/powerline/fonts.git --depth=1; \
     cd fonts; \
     ./install.sh; \
