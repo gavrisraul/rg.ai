@@ -279,4 +279,10 @@ subprocess.call(
     shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
 )
 
+subprocess.call(
+    f'''sudo gpasswd -a {user} input;
+    libinput-gestures-setup autostart; libinput-gestures-setup start''',
+    shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+)
+
 finalize()
