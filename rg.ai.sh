@@ -1,22 +1,185 @@
 #!/bin/bash
-# by Luke Smith <luke@lukesmith.xyz>
-# rg.ai -> raul gavris arch installation
+
+# Made by Raul Gavris <http://raulgavris.com>
+
+dialog --defaultno --title "Arch Linux install\!" --yesno "Do not forget about mirrorslist vim /etc/pacman.d/mirrorlist"  7 50 || exit
+
+pacman -Sy --noconfirm dialog || { echo "Error at script start: Are you sure you're running this as the root user? Are you sure you have an internet connection?"; exit; }
+
+dialog --defaultno --title "Arch Linux install\!" --yesno "Are you sure you want to wipe out your entire hard disk and install Arch from zero?"  7 50 || exit
+
+dialog --no-cancel --inputbox "Enter partition size in gb, separated by space (swap & root)." 10 65 2>psize
+
+IFS=' ' read -ra SIZE <<< $(cat psize)
+
+re='^[0-9]+$'
+if ! [ ${#SIZE[@]} -eq 2 ] || ! [[ ${SIZE[0]} =~ $re ]] || ! [[ ${SIZE[1]} =~ $re ]] ; then
+    SIZE=(12 25);
+fi
+
+# Windows -> command prompt installation -> BootRec.exe /FixMbr -> overwrites(deletes) grub
+# ls /usr/share/kbd/keymaps/**/*.map.gz # checks for keyboars layouts
+# shift + pgup / pgdown for navigation
+loadkeys ro
+# ls /sys/firmware/efi/efivars # checks if it is a uefi installation, this should be none
+# wifi-menu # ping google.com
+timedatectl set-ntp true
+timedatectl status
+
+# fdiks -l -> lsblk
+# BOOT -> 200M
+# SWAP -> (150/100)G of RAM
+# ROOT -> 30G
+# HOME -> the difference
+
+cat <<EOF | fdisk /dev/sda
+d
+
+d
+
+d
+
+d
+
+w
+EOF
+
+cat <<EOF | fdisk /dev/sda
+n
+p
+
+
++200M
+n
+p
+
+
++${SIZE[0]}G
+n
+p
+
+
++${SIZE[1]}G
+n
+p
+
+
+a
+4
+w
+EOF
+
+yes | mkfs.ext4 /dev/sda1
+yes | mkfs.ext4 /dev/sda3
+yes | mkfs.ext4 /dev/sda4
+mkswap /dev/sda2
+swapon /dev/sda2
+mount /dev/sda3 /mnt
+mkdir /mnt/boot
+mkdir /mnt/home
+mount /dev/sda1 /mnt/boot
+mount /dev/sda4 /mnt/home
+
+pacman -Sy --noconfirm archlinux-keyring
+
+echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "ro_RO.UTF-8 UTF-8" >> /etc/locale.gen
+echo "en_US ISO-8859-1" >> /etc/locale.gen
+echo "ro_RO ISO-8859-2" >> /etc/locale.gen
+locale-gen
+
+pacstrap /mnt base base-devel vim dialog git
+
+genfstab -U /mnt >> /mnt/etc/fstab
+
+cat <<EOF > rg.ai2.sh
+#!/bin/bash
+
+dialog --defaultno --title "Arch Linux install\!" --yesno "Just entered arch-chroot"  7 50 || exit
+
+ln -sf /usr/share/zoneinfo/Europe/Bucharest /etc/localtime
+
+hwclock --systohc --utc
+
+echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "ro_RO.UTF-8 UTF-8" >> /etc/locale.gen
+echo "en_US ISO-8859-1" >> /etc/locale.gen
+echo "ro_RO ISO-8859-2" >> /etc/locale.gen
+locale-gen
+
+echo "KEYMAP=ro" >> /etc/vconsole.conf
+echo "raulgavris" >> /etc/hostname
+echo "127.0.0.1       localhost" >> /etc/hosts
+echo "::1             localhost" >> /etc/hosts
+echo "127.0.1.1       raulgavris.localdomain  raulgavris" >> /etc/hosts
+
+pacman -S --noconfirm --needed sudo zsh os-prober
+pacman -S --noconfirm --needed ifplugd wpa_supplicant
+
+pacman --noconfirm --needed -S wireless_tools
+pacman --noconfirm --needed -S gnome-keyring
+#pacman --noconfirm --needed -S networkmanager
+#pacman --noconfirm --needed -S network-manager-applet
+
+#systemctl enable NetworkManager.service
+
+#systemctl enable wpa_supplicant.service
+#systemctl enable dhcpcd -> ethernet pc
+#gpasswd -a rg network
+
+#ip link set down lo
+#ip link set down enp4s0f1
+#ip link set down wlp3s0
+
+#systemctl start wpa_supplicant.service
+
+#systemctl disable dhcpcd.service
+#systemctl disable dhcpcd@.service
+#systemctl stop dhcpcd.service
+#systemctl stop dhcpcd@.service
+
+#systemctl start NetworkManager.service
+
+dialog --no-cancel --inputbox "Enter password for root." 10 65 2>rootpasswd
+
+cat <<ROOTPASS | passwd
+	${rootpasswd}
+	${rootpasswd}
+ROOTPASS
+
+pacman --noconfirm --needed -S grub && grub-install --target=i386-pc --recheck /dev/sda && grub-mkconfig -o /boot/grub/grub.cfg
+
+useradd -m -G wheel -s /usr/bin/zsh rg
+chsh -s /usr/bin/zsh
+
+pacman -Syyu --noconfirm
+
+#################################################################
+# ln -sf /etc/profile ~/.profile # for startx to start everytime
+# autostart systemd default session on tty1
+# if [[ "$(tty)" == '/dev/tty1' ]]; then
+#         exec startx
+# fi
+# .xinitrc
+# #! /bin/bash
+# exec i3
+
+
+#################################################################
+#################################################################
+#################################################################
+######################   RG.AI SCRIPT  ##########################
+#################################################################
+#################################################################
+#################################################################
 
 ### OPTIONS AND VARIABLES ###
 
-while getopts ":a:r:p:h" o;
-	do case "${o}" in
-		h) printf "Optional arguments for custom use:\\n  -r: Dotfiles repository (local file or url)\\n  -p: Dependencies and programs csv (local file or url)\\n  -a: AUR helper (must have pacman-like syntax)\\n  -h: Show this message\\n" && exit ;;
-		r) dotfilesrepo=${OPTARG} && git ls-remote "$dotfilesrepo" || exit ;;
-		p) progsfile=${OPTARG} ;;
-		a) aurhelper=${OPTARG} ;;
-		*) printf "Invalid option: -%s\\n" "$OPTARG" && exit ;;
-esac done
-
-### DEFAULTS:
-[ -z "$dotfilesrepo" ] && dotfilesrepo="https://github.com/gavrisraul/dotfiles.git"
-[ -z "$progsfile" ] && progsfile="https://raw.githubusercontent.com/gavrisraul/rg.ai/master/progs.csv"
-[ -z "$aurhelper" ] && aurhelper="yay"
+dotfilesrepo="https://github.com/gavrisraul/dotfiles.git"
+progsfile="https://raw.githubusercontent.com/gavrisraul/rg.ai/master/progs.csv"
+aurhelper="yay"
 
 ### FUNCTIONS ###
 
@@ -54,7 +217,8 @@ adduserandpass() {
 	# Adds user `$name` with password $pass1.
 	dialog --infobox "User \"$name\" added." 4 50
 	useradd -m -g wheel -s /bin/bash "$name" >/dev/null 2>&1 ||
-	usermod -a -G wheel "$name" && mkdir -p /home/"$name" && chown "$name":wheel /home/"$name"
+	usermod -a -G wheel,audio,video,optical,storage "$name" && mkdir -p /home/"$name" && chown "$name":wheel /home/"$name"
+	#groups rg
 	echo "$name:$pass1" | chpasswd
 	unset pass1 pass2 ;
 }
@@ -104,8 +268,19 @@ aurinstall() {
 
 pipinstall() {
 	dialog --title "RG.AI Installation" --infobox "Installing the Python package \`$1\` ($n of $total). $1 $2" 5 70
-	command -v pip || pacman -S --noconfirm --needed python-pip >/dev/null 2>&1
+	command -v pip || pacman -S --noconfirm --needed python-pip python2-pip python3-pip python python2 python3 >/dev/null 2>&1
 	yes | pip install "$1"
+    yes | pip2 install "$1"
+    yes | pip3 install "$1"
+}
+
+npminstall() {
+    dialog --title "RG.AI Installation" --infobox "Installing the Npm package \`$1\` ($n of $total). $1 $2" 5 70
+    command -v npm || pacman -S --noconfirm --needed npm nodejs >/dev/null 2>&1
+    yes | npm install -g "$1"
+    yes | yarn add "$1"
+    # you can use yay -S --noconfirm --needed npm nodejs >/dev/null 2>&1
+    # yarn will work because it is installed with pacman and in progs.csv programs are ordered
 }
 
 installationloop() {
@@ -120,6 +295,7 @@ installationloop() {
 			"aur") aurinstall "$program" "$comment" ;;
 			"git") gitmakeinstall "$program" "$comment" ;;
 			"pip") pipinstall "$program" "$comment" ;;
+            "npm") npminstall "$program" "$comment" ;;
 		esac
 	done < /tmp/progs.csv ;
 }
@@ -131,6 +307,14 @@ putgitrepo() { # Downlods a gitrepo $1 and places the files in $2 only overwriti
 	chown -R "$name:wheel" "$dir"
 	sudo -u "$name" git clone --depth 1 "$1" "$dir/gitrepo" >/dev/null 2>&1 &&
 	sudo -u "$name" cp -rfT "$dir/gitrepo" "$2"
+}
+
+serviceinit() {
+    for service in "$@"; do
+        dialog --infobox "Enabling \"$service\"..." 4 40
+        systemctl enable "$service"
+        systemctl start "$service"
+	done ;
 }
 
 systembeepoff() {
@@ -187,6 +371,7 @@ newperms "%wheel ALL=(ALL) NOPASSWD: ALL"
 # Make pacman and yay colorful and adds eye candy on the progress bar because why not.
 grep "^Color" /etc/pacman.conf >/dev/null || sed -i "s/^#Color/Color/" /etc/pacman.conf
 grep "ILoveCandy" /etc/pacman.conf >/dev/null || sed -i "/#VerbosePkgLists/a ILoveCandy" /etc/pacman.conf
+grep "TotalDownload" /etc/pacman.conf || sed -i "/#VerbosePkgLists/a TotalDownload" /etc/pacman.conf
 
 # Use all cores for compilation.
 sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /etc/makepkg.conf
@@ -213,14 +398,37 @@ dialog --infobox "Installing (neo)vim plugins..." 4 50
 (sleep 30 && killall nvim) &
 sudo -u "$name" nvim -E -c "PlugUpdate|visual|q|q" >/dev/null 2>&1
 
+serviceinit netctl-auto@wlp3s0 netctl-ifplugd@enp4s0f1
+
 # Most important command! Get rid of the beep!
 systembeepoff
+
+# powerline fonts
+sudo chown -R {user} /home/{user}/.npm;
+cd /tmp;
+git clone https://github.com/powerline/fonts.git --depth=1;
+cd fonts;
+./install.sh;
+cd ..;
+rm -rf fonts;
+cd;
+
+# gestures
+sudo gpasswd -a {user} input;
+libinput-gestures-setup autostart; libinput-gestures-setup start
 
 # This line, overwriting the `newperms` command above will allow the user to run
 # serveral important commands, `shutdown`, `reboot`, updating, etc. without a password.
 newperms "%wheel ALL=(ALL) ALL #rg
-%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/systemctl suspend,/usr/bin/wifi-menu,/usr/bin/mount,/usr/bin/umount,/usr/bin/pacman -Syu,/usr/bin/pacman -Syyu,/usr/bin/packer -Syu,/usr/bin/packer -Syyu,/usr/bin/systemctl restart NetworkManager,/usr/bin/rc-service NetworkManager restart,/usr/bin/pacman -Syyu --noconfirm,/usr/bin/loadkeys,/usr/bin/yay,/usr/bin/pacman -Syyuw --noconfirm"
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/systemctl suspend,/usr/bin/wifi-menu,/usr/bin/mount,/usr/bin/umount,/usr/bin/pacman -Syu,/usr/bin/pacman -Syyu,/usr/bin/systemctl restart NetworkManager,/usr/bin/rc-service NetworkManager restart,/usr/bin/pacman -Syyu --noconfirm,/usr/bin/loadkeys,/usr/bin/yay,/usr/bin/pacman -Syyuw --noconfirm"
 
 # Last message! Install complete!
 finalize
 clear
+EOF
+
+cp rg.ai2.sh /mnt
+
+arch-chroot /mnt bash rg.ai2.sh
+
+rm rg.ai2.sh /mnt/rg.ai2.sh
