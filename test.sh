@@ -52,9 +52,10 @@ cat <<ROOTPASS | passwd
 	${rootpasswd}
 ROOTPASS
 
+mkinitcpio -p
+
 pacman --noconfirm --needed -S grub;
 grub-install --target=i386-pc /dev/sda;
-grub-mkconfig -o /boot/grub/grub.cfg;
 grub-mkconfig -o /boot/grub/grub.cfg;
 
 useradd -m -G wheel -s /usr/bin/zsh rg
