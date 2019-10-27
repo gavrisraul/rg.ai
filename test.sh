@@ -24,7 +24,8 @@ pacman -S --noconfirm --needed ifplugd wpa_supplicant
 
 pacman --noconfirm --needed -S wireless_tools
 pacman --noconfirm --needed -S gnome-keyring
-#pacman --noconfirm --needed -S networkmanager
+pacman --noconfirm --needed -S networkmanager
+pacman --noconfirm --needed -S netctl dhcpcd
 #pacman --noconfirm --needed -S network-manager-applet
 
 #systemctl enable NetworkManager.service
