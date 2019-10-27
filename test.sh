@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dialog --defaultno --title "Arch Linux install\!" --yesno "Just entered arch-chroot"  7 50 || exit
+dialog --defaultno --title "Arch Linux install\!" --yesno "Just entered arch-chroot don't forget about passwd"  7 50 || exit
 
 ln -sf /usr/share/zoneinfo/Europe/Bucharest /etc/localtime
 
@@ -26,35 +26,32 @@ pacman --noconfirm --needed -S wireless_tools
 pacman --noconfirm --needed -S gnome-keyring
 pacman --noconfirm --needed -S networkmanager
 pacman --noconfirm --needed -S netctl dhcpcd
-#pacman --noconfirm --needed -S network-manager-applet
 
-#systemctl enable NetworkManager.service
+# systemctl disable dhcpcd@enp4s0f1
+# systemctl disable dhcpcd@enp4s0f1.service
+# systemctl disable dhcpcd@wlp3s0
+# systemctl disable dhcpcd@wlp3s0.service
+# systemctl disable NetworkManager.service
+# systemctl disable netctl-auto@wlp3s0
+# systemctl disable netctl-auto@wlp3s0.service
+# systemctl disable netctl-ifplugd@enp4s0f1
+# systemctl disable netctl-ifplugd@enp4s0f1.service
+#
+# systemctl enable netctl-auto@wlp3s0
+# systemctl enable netctl-auto@wlp3s0.service
+# systemctl enable netctl-ifplugd@enp4s0f1
+# systemctl enable netctl-ifplugd@enp4s0f1.service
+#
+# git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+# git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+# git clone https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+#
+# git clone --depth 1 https://github.com/ryanoasis/nerd-fonts;
+# cd nerd-fonts;
+# ./install.sh
+# cd;
 
-#systemctl enable wpa_supplicant.service
-#systemctl enable dhcpcd -> ethernet pc
-#gpasswd -a rg network
-
-#ip link set down lo
-#ip link set down enp4s0f1
-#ip link set down wlp3s0
-
-#systemctl start wpa_supplicant.service
-
-#systemctl disable dhcpcd.service
-#systemctl disable dhcpcd@.service
-#systemctl stop dhcpcd.service
-#systemctl stop dhcpcd@.service
-
-#systemctl start NetworkManager.service
-
-dialog --no-cancel --inputbox "Enter password for root." 10 65 2>rootpasswd
-
-cat <<ROOTPASS | passwd
-	${rootpasswd}
-	${rootpasswd}
-ROOTPASS
-
-mkinitcpio -p
+mkinitcpio
 
 pacman --noconfirm --needed -S grub;
 grub-install --target=i386-pc /dev/sda;
@@ -64,16 +61,6 @@ useradd -m -G wheel -s /usr/bin/zsh rg
 chsh -s /usr/bin/zsh
 
 pacman -Syyu --noconfirm
-
-#################################################################
-# ln -sf /etc/profile ~/.profile # for startx to start everytime
-# autostart systemd default session on tty1
-# if [[ "$(tty)" == '/dev/tty1' ]]; then
-#         exec startx
-# fi
-# .xinitrc
-# #! /bin/bash
-# exec i3
 
 
 #################################################################
