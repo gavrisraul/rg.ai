@@ -1,9 +1,8 @@
-unicode to terminal echo -e '\uxxxx'
+assembly, assembly debugger
 setup mysql, sqlserver docker kubernetes  c# unity
 set up deepin or kde plasma
-make betterlockscreen after period of time with xautolock
-assembly, assembly debugger
 
+unicode to terminal echo -e '\uxxxx'
 
 
 ############################################
