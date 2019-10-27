@@ -7,6 +7,7 @@ ln -sf /usr/share/zoneinfo/Europe/Bucharest /etc/localtime
 hwclock --systohc --utc
 
 echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "ro_RO.UTF-8 UTF-8" >> /etc/locale.gen
 echo "en_US ISO-8859-1" >> /etc/locale.gen
 echo "ro_RO ISO-8859-2" >> /etc/locale.gen
