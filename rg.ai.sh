@@ -88,7 +88,7 @@ echo "en_US ISO-8859-1" >> /etc/locale.gen
 echo "ro_RO ISO-8859-2" >> /etc/locale.gen
 locale-gen
 
-pacstrap /mnt base base-devel vim dialog git
+pacstrap /mnt base base-devel linux vim dialog git
 
 genfstab -U /mnt >> /mnt/etc/fstab
 
