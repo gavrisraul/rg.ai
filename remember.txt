@@ -1,0 +1,52 @@
+unicode to terminal echo -e '\uxxxx'
+setup mysql, sqlserver docker kubernetes  c# unity
+set up deepin or kde plasma
+make betterlockscreen after period of time with xautolock
+assembly, assembly debugger
+
+
+
+############################################
+git clone https://github.com/i3/i3lock
+cd i3lock
+autoreconf --force --install
+
+rm -rf build/
+mkdir -p build && cd build/
+
+../configure \
+  --prefix=/usr \
+  --sysconfdir=/etc \
+  --disable-sanitizers
+
+make
+make -j8
+sudo make install
+cp i3lock /usr/bin
+cd
+############################################
+git clone https://github.com/PandorasFox/i3lock-color
+cd i3lock-color
+autoreconf --force --install
+
+rm -rf build/
+mkdir -p build && cd build/
+
+../configure \
+  --prefix=/usr \
+  --sysconfdir=/etc \
+  --disable-sanitizers
+
+make
+make -j8
+sudo make install
+cp i3lock /usr/bin
+cd
+############################################
+git clone https://github.com/pavanjadhaw/betterlockscreen
+cd betterlockscreen
+cp betterlockscreen /usr/bin
+############################################
+chmod +x betterlocki3lock
+cp betterlocki3lock /usr/bin
+###########################################
