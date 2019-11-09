@@ -313,6 +313,9 @@ cd;
 sudo gpasswd -a {user} input;
 libinput-gestures-setup autostart; libinput-gestures-setup start
 
+depmod -a
+sudo modprobe vboxdrv
+
 # This line, overwriting the `newperms` command above will allow the user to run
 # serveral important commands, `shutdown`, `reboot`, updating, etc. without a password.
 newperms "%wheel ALL=(ALL) ALL #rg
