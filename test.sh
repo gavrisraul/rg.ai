@@ -53,9 +53,19 @@ pacman --noconfirm --needed -S netctl dhcpcd
 
 mkinitcpio
 
-pacman --noconfirm --needed -S grub;
-grub-install --target=i386-pc /dev/sda;
+# pacman --noconfirm --needed -S grub;
+# grub-install --target=i386-pc /dev/sda;
+# grub-mkconfig -o /boot/grub/grub.cfg;
+
+pacman --noconfirm --needed -S grub efibootmgr;
+mkdir /boot/efi;
+mount /dev/nvme0n1p1 /boot/efi;
+grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi;
 grub-mkconfig -o /boot/grub/grub.cfg;
+mkdir /boot/efi/EFI/BOOT;
+cp /boot/efi/EFI/GRUB/grubx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI;
+echo 'bcf boot add 1 fs0:\EFI\GRUB\grubx64.efi "My GRUB bootloader"' >> /boot/efi/startup.nsh;
+echo "exit" >> /boot/efi/startup.nsh;
 
 useradd -m -G wheel -s /usr/bin/zsh rg
 chsh -s /usr/bin/zsh
@@ -324,3 +334,5 @@ newperms "%wheel ALL=(ALL) ALL #rg
 # Last message! Install complete!
 finalize
 clear
+
+echo "Don't forget to generate fstab after exit! And tidy it a little bit"

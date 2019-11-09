@@ -32,7 +32,55 @@ timedatectl status
 # ROOT -> 30G
 # HOME -> the difference
 
-cat <<EOF | fdisk /dev/sda
+# cat <<EOF | fdisk /dev/sda
+# d
+#
+# d
+#
+# d
+#
+# d
+#
+# w
+# EOF
+#
+# cat <<EOF | fdisk /dev/sda
+# n
+# p
+#
+#
+# +200M
+# a
+# n
+# p
+#
+#
+# +${SIZE[0]}G
+# n
+# p
+#
+#
+# +${SIZE[1]}G
+# n
+# p
+#
+#
+# w
+# EOF
+#
+# yes | mkfs.ext4 /dev/sda1
+# yes | mkfs.ext4 /dev/sda3
+# yes | mkfs.ext4 /dev/sda4
+# mkswap /dev/sda2
+# swapon /dev/sda2
+# mount /dev/sda3 /mnt
+# mkdir /mnt/boot
+# mkdir /mnt/home
+# mount /dev/sda1 /mnt/boot
+# mount /dev/sda4 /mnt/home
+
+
+cat <<EOF fdisk /dev/nvme0n1
 d
 
 d
@@ -44,7 +92,7 @@ d
 w
 EOF
 
-cat <<EOF | fdisk /dev/sda
+cat <<EOF fdisk /dev/nvme0n1
 n
 p
 
@@ -68,16 +116,16 @@ p
 w
 EOF
 
-yes | mkfs.ext4 /dev/sda1
-yes | mkfs.ext4 /dev/sda3
-yes | mkfs.ext4 /dev/sda4
-mkswap /dev/sda2
-swapon /dev/sda2
-mount /dev/sda3 /mnt
-mkdir /mnt/boot
+yes | mkfs.fat -F32 /dev/nvme0n1p1
+yes | mkfs.ext4 /dev/nvme0n1p3
+yes | mkfs.ext4 /dev/nvme0n1p4
+mkswap /dev/nvme0n1p2
+swapon /dev/nvme0n1p2
+mount /dev/nvme0n1p3 /mnt
 mkdir /mnt/home
-mount /dev/sda1 /mnt/boot
-mount /dev/sda4 /mnt/home
+mout /nvme0n1p4 /mnt/home
+
+
 
 pacman -Sy --noconfirm archlinux-keyring
 
@@ -88,11 +136,11 @@ echo "en_US ISO-8859-1" >> /etc/locale.gen
 echo "ro_RO ISO-8859-2" >> /etc/locale.gen
 locale-gen
 
-pacstrap /mnt base base-devel linux vim dialog git
+pacstrap /mnt base base-devel linux linux-firmware vim dialog git
 
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U /mnt >> /mnt/etc/fstab # again after mounting the boot partition and clean fstab
 
-#cat <<EOF > rg.ai2.sh
+#cat <<EOF > /mnt rg.ai2.sh
 #
 #EOF
 
