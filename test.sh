@@ -323,6 +323,12 @@ cd;
 sudo gpasswd -a {user} input;
 libinput-gestures-setup autostart; libinput-gestures-setup start
 
+# rofi themes
+# git clone https://github.com/davatorium/rofi-themes
+# cd rofi-themes
+# cp ./Official\ Themes/* /usr/share/rofi/themes
+# cp ./User\ Themes/* /usr/share/rofi/themes
+
 depmod -a
 sudo modprobe vboxdrv
 
