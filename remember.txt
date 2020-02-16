@@ -21,7 +21,7 @@ mkdir -p build && cd build/
 make
 make -j8
 sudo make install
-cp i3lock /usr/bin
+sudo cp i3lock /usr/bin
 cd
 ############################################
 git clone https://github.com/PandorasFox/i3lock-color
@@ -39,12 +39,12 @@ mkdir -p build && cd build/
 make
 make -j8
 sudo make install
-cp i3lock /usr/bin
+sudo cp i3lock /usr/bin
 cd
 ############################################
 git clone https://github.com/pavanjadhaw/betterlockscreen
 cd betterlockscreen
-cp betterlockscreen /usr/bin
+sudo cp betterlockscreen /usr/bin
 ############################################
 chmod +x betterlocki3lock
 cp betterlocki3lock /usr/bin
