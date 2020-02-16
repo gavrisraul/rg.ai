@@ -2,130 +2,38 @@
 
 # Made by Raul Gavris <http://raulgavris.com>
 
-dialog --defaultno --title "Arch Linux install\!" --yesno "Do not forget about mirrorslist vim /etc/pacman.d/mirrorlist"  7 50 || exit
-
-pacman -Sy --noconfirm dialog || { echo "Error at script start: Are you sure you're running this as the root user? Are you sure you have an internet connection?"; exit; }
+pacman -Syy --noconfirm dialog || { echo "Error at script start: Are you sure you're running this as the root user? Are you sure you have an internet connection?"; exit; }
 
 dialog --defaultno --title "Arch Linux install\!" --yesno "Are you sure you want to wipe out your entire hard disk and install Arch from zero?"  7 50 || exit
 
-dialog --no-cancel --inputbox "Enter partition size in gb, separated by space (swap & root)." 10 65 2>psize
+dialog --no-cancel --inputbox "Enter partition size in GB (swap)" 10 65 2>psize
 
 IFS=' ' read -ra SIZE <<< $(cat psize)
 
-re='^[0-9]+$'
-if ! [ ${#SIZE[@]} -eq 2 ] || ! [[ ${SIZE[0]} =~ $re ]] || ! [[ ${SIZE[1]} =~ $re ]] ; then
-    SIZE=(12 25);
-fi
-
 # Windows -> command prompt installation -> BootRec.exe /FixMbr -> overwrites(deletes) grub
-# ls /usr/share/kbd/keymaps/**/*.map.gz # checks for keyboars layouts
+ls /usr/share/kbd/keymaps/**/*.map.gz # checks for keyboars layouts
 # shift + pgup / pgdown for navigation
 loadkeys ro
-# ls /sys/firmware/efi/efivars # checks if it is a uefi installation, this should be none
-# wifi-menu # ping google.com
+ls /sys/firmware/efi/efivars # checks if it is a uefi installation, this should be none
 timedatectl set-ntp true
 timedatectl status
 
 # fdiks -l -> lsblk
 # BOOT -> 200M
 # SWAP -> (150/100)G of RAM
-# ROOT -> 30G
-# HOME -> the difference
+# ROOT -> the difference
 
-# cat <<EOF | fdisk /dev/sda
-# d
-#
-# d
-#
-# d
-#
-# d
-#
-# w
-# EOF
-#
-# cat <<EOF | fdisk /dev/sda
-# n
-# p
-#
-#
-# +200M
-# a
-# n
-# p
-#
-#
-# +${SIZE[0]}G
-# n
-# p
-#
-#
-# +${SIZE[1]}G
-# n
-# p
-#
-#
-# w
-# EOF
-#
-# yes | mkfs.ext4 /dev/sda1
-# yes | mkfs.ext4 /dev/sda3
-# yes | mkfs.ext4 /dev/sda4
-# mkswap /dev/sda2
-# swapon /dev/sda2
-# mount /dev/sda3 /mnt
-# mkdir /mnt/boot
-# mkdir /mnt/home
-# mount /dev/sda1 /mnt/boot
-# mount /dev/sda4 /mnt/home
-
-
-cat <<EOF fdisk /dev/nvme0n1
-d
-
-d
-
-d
-
-d
-
-w
-EOF
-
-cat <<EOF fdisk /dev/nvme0n1
-n
-p
-
-
-+200M
-a
-n
-p
-
-
-+${SIZE[0]}G
-n
-p
-
-
-+${SIZE[1]}G
-n
-p
-
-
-w
-EOF
+printf "d\nd\nd\nd\nw\n" | fdisk /dev/nvme0n1
+printf "g\nn\n1\n\n+512M\nn\n2\n\n+${SIZE[0]}G\nn\n3\n\n\nt\n1\n1\nt\n2\n19\nt\n3\n23\nw\n" | fdisk /dev/nvme0n1
+partprobe
 
 yes | mkfs.fat -F32 /dev/nvme0n1p1
 yes | mkfs.ext4 /dev/nvme0n1p3
-yes | mkfs.ext4 /dev/nvme0n1p4
 mkswap /dev/nvme0n1p2
 swapon /dev/nvme0n1p2
 mount /dev/nvme0n1p3 /mnt
-mkdir /mnt/home
-mout /nvme0n1p4 /mnt/home
-
-
+mkdir -p /mnt/boot/efi
+mount /dev/nvme0n1p1 /mnt/boot/efi
 
 pacman -Sy --noconfirm archlinux-keyring
 
@@ -136,18 +44,10 @@ echo "en_US ISO-8859-1" >> /etc/locale.gen
 echo "ro_RO ISO-8859-2" >> /etc/locale.gen
 locale-gen
 
-pacstrap /mnt base base-devel linux linux-firmware vim dialog git
+pacstrap /mnt base base-devel linux linux-firmware vim dialog git networkmanager man-db man-pages intel-ucode
 
 genfstab -U /mnt >> /mnt/etc/fstab # again after mounting the boot partition and clean fstab
 
-#cat <<EOF > /mnt rg.ai2.sh
-#
-#EOF
+cp chroot.sh /mnt
 
-# cp rg.ai2.sh /mnt
-
-# arch-chroot /mnt bash rg.ai2.sh
-
-# rm rg.ai2.sh /mnt/rg.ai2.sh
-
-cp test.sh /mnt
+arch-chroot /mnt bash chroot.sh && rm /mnt/chroot.sh

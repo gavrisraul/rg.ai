@@ -19,60 +19,30 @@ echo "127.0.0.1       localhost" >> /etc/hosts
 echo "::1             localhost" >> /etc/hosts
 echo "127.0.1.1       raulgavris.localdomain  raulgavris" >> /etc/hosts
 
-pacman -S --noconfirm --needed sudo zsh os-prober
-pacman -S --noconfirm --needed ifplugd wpa_supplicant
+pacman -S --noconfirm --needed sudo zsh os-prober gnome-keyring networkmanager grub efibootmgr ifplugd wpa_supplicant netctl dhcpcd
 
-pacman --noconfirm --needed -S wireless_tools
-pacman --noconfirm --needed -S gnome-keyring
-pacman --noconfirm --needed -S networkmanager
-pacman --noconfirm --needed -S netctl dhcpcd
+systemctl enable NetworkManager
+systemctl enable dhcpcd.service
 
-# systemctl disable dhcpcd@enp4s0f1
-# systemctl disable dhcpcd@enp4s0f1.service
-# systemctl disable dhcpcd@wlp3s0
-# systemctl disable dhcpcd@wlp3s0.service
-# systemctl disable NetworkManager.service
-# systemctl disable netctl-auto@wlp3s0
-# systemctl disable netctl-auto@wlp3s0.service
-# systemctl disable netctl-ifplugd@enp4s0f1
-# systemctl disable netctl-ifplugd@enp4s0f1.service
-#
-# systemctl enable netctl-auto@wlp3s0
-# systemctl enable netctl-auto@wlp3s0.service
-# systemctl enable netctl-ifplugd@enp4s0f1
-# systemctl enable netctl-ifplugd@enp4s0f1.service
+systemctl enable netctl-auto@wlp3s0
+systemctl enable netctl-auto@wlp3s0.service
+systemctl enable netctl-ifplugd@enp4s0f1
+systemctl enable netctl-ifplugd@enp4s0f1.service
 
-#sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi
+grub-mkconfig -o /boot/grub/grub.cfg
+mkdir /boot/efi/EFI/BOOT
+cp /boot/efi/EFI/GRUB/grubx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI
+touch /boot/efi/startup.nsh
+echo "bcf boot add 1 fs0:\\EFI\\GRUB\\grubx64.efi \"My GRUB bootloader\"" >> /boot/efi/startup.nsh
+echo "exit" >> /boot/efi/startup.nsh
 
-# git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-# git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-# git clone https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
-#
-# git clone --depth 1 https://github.com/ryanoasis/nerd-fonts;
-# cd nerd-fonts;
-# ./install.sh
-# cd;
-
-mkinitcpio
-
-# pacman --noconfirm --needed -S grub;
-# grub-install --target=i386-pc /dev/sda;
-# grub-mkconfig -o /boot/grub/grub.cfg;
-
-pacman --noconfirm --needed -S grub efibootmgr;
-mkdir /boot/efi;
-mount /dev/nvme0n1p1 /boot/efi;
-grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi;
-grub-mkconfig -o /boot/grub/grub.cfg;
-mkdir /boot/efi/EFI/BOOT;
-cp /boot/efi/EFI/GRUB/grubx64.efi /boot/efi/EFI/BOOT/BOOTX64.EFI;
-echo 'bcf boot add 1 fs0:\EFI\GRUB\grubx64.efi "My GRUB bootloader"' >> /boot/efi/startup.nsh;
-echo "exit" >> /boot/efi/startup.nsh;
+mkinitcpio -P
 
 useradd -m -G wheel -s /usr/bin/zsh rg
 chsh -s /usr/bin/zsh
 
-pacman -Syyu --noconfirm
+pacman -Syyuu --noconfirm
 
 
 #################################################################
@@ -186,7 +156,7 @@ npminstall() {
     dialog --title "RG.AI Installation" --infobox "Installing the Npm package \`$1\` ($n of $total). $1 $2" 5 70
     command -v npm || pacman -S --noconfirm --needed npm nodejs >/dev/null 2>&1
     yes | npm install -g "$1"
-    yes | yarn add "$1"
+    #yes | yarn add "$1"
     # you can use yay -S --noconfirm --needed npm nodejs >/dev/null 2>&1
     # yarn will work because it is installed with pacman and in progs.csv programs are ordered
 }
